@@ -1,6 +1,6 @@
 @charset "UTF-8";
 * {
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-family:'Arial Black', Arial, sans-serif;
     box-sizing: border-box;
 }
 
@@ -130,9 +130,9 @@ ul > li::marker {
 
 /* ELEMENTOS DE FORMULÁRIO */
 
-form {
+#cabecalho {
     background-color: rgba(55, 41, 145, 0.2);
-    padding: 15px;
+    padding: 10px;
     border-radius: 10px;
 }
 
@@ -224,3 +224,24 @@ input[type=radio] + label, input[type=checkbox] + label {
     font-size: 1em;
     background-color: rgba(0, 0, 0, 0);
 }
+
+
+
+#botao {
+    background-color: rgb(255, 255, 255) !important;   
+    display: flex;
+    max-width: 5%;
+    height: 5%;
+    text-align: center;
+    align-items: center;
+    justify-content: center; 
+}
+
+.tot {
+    display: flex !important;
+    padding-top: 30px !important;
+    font-size: 2em !important;
+    font-weight: bolder !important;
+    justify-content: center !important;
+}
+
