@@ -62,24 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     exit;
 }
 
-// Definir valores para edição
-$produto_editar = '';
-$quantidade_editar = 1; // Definido para 1 como padrão
-$preco_editar = 0.00;
-$index_editar = null;
-
-if (isset($_POST['acao']) && $_POST['acao'] == 'Abrir Modal') {
-    $index_editar = intval($_POST['index']);
-    if (isset($_SESSION['carrinho'][$index_editar])) {
-        $produto_editar = $_SESSION['carrinho'][$index_editar]['produto'];
-        $quantidade_editar = $_SESSION['carrinho'][$index_editar]['quantidade'];
-        $preco_editar = $_SESSION['carrinho'][$index_editar]['preco'] / $quantidade_editar; // Preço unitário para edição
-    }
-}
-
-// Formatação do preço para o campo de entrada
-$preco_formatado_para_input = number_format($preco_editar, 2, '.', ''); // Para input (ponto como separador decimal)
-$preco_formatado_para_exibir = number_format($preco_editar, 2, ',', '.'); // Para exibição (vírgula como separador decimal)
+$total = 0; // Inicializa o total
 ?>
 
 <!DOCTYPE html>
@@ -106,6 +89,34 @@ $preco_formatado_para_exibir = number_format($preco_editar, 2, ',', '.'); // Par
             /* Ajuste de padding */
             cursor: pointer;
         }
+
+        /* Estilização da tabela */
+        .table-custom {
+            border-collapse: collapse;
+        }
+
+        .table-custom th,
+        .table-custom td {
+            border: 1px solid #d3d3d3;
+            /* Cor cinza para as linhas */
+            padding: 8px;
+            /* Espaçamento interno */
+        }
+
+        .table-custom th {
+            background-color: #f8f9fa;
+            /* Cor de fundo das cabeçalhos */
+        }
+
+        .table-custom tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+            /* Cor de fundo para linhas pares */
+        }
+
+        .table-custom tbody tr:hover {
+            background-color: #e0e0e0;
+            /* Cor de fundo ao passar o mouse */
+        }
     </style>
 </head>
 
@@ -118,7 +129,6 @@ $preco_formatado_para_exibir = number_format($preco_editar, 2, ',', '.'); // Par
                     <form id="cabecalho-modal" method="post" id="formAdicionarProduto">
                         <div class="modal-header" style="display: flex; justify-content: center;">
                             <h2 class="modal-title" id="myModalLabel">Novo Produto</h2>
-
                         </div>
                         <div class="modal-body" style="display:flex; flex-direction:row;">
                             <div class="form-group">
@@ -147,7 +157,6 @@ $preco_formatado_para_exibir = number_format($preco_editar, 2, ',', '.'); // Par
         <div style="display: flex; justify-content: center; gap: 10px">
             <button style="width: 38%; min-width: 38%;" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
                 Novo produto
-
             </button>
             <form method="POST">
                 <input type="hidden" name="acao" value="Excluir tudo">
@@ -156,31 +165,51 @@ $preco_formatado_para_exibir = number_format($preco_editar, 2, ',', '.'); // Par
         </div>
 
         <h2 id="fundo" style="display:flex; justify-content:center; padding-bottom: 20px; padding-top: 20px;">Produtos adicionados:</h2>
-        <ul style="display: flex; font-size: 1.3em; font-weight:bold; gap: 10px; flex-direction: column; justify-content:center;">
-            <?php
-            $total = 0; // Inicializa o total
-            if (empty($_SESSION['carrinho'])) {
-                echo "<li>Carrinho vazio</li>";
-            } else {
-                foreach ($_SESSION['carrinho'] as $index => $item) {
-                    if (is_array($item) && isset($item['produto']) && isset($item['quantidade']) && isset($item['preco'])) {
-                        $preco_unitario_formatado = number_format($item['preco'] / $item['quantidade'], 2, ',', '.'); // Calcula o preço unitário
-                        $preco_total_formatado = number_format($item['preco'], 2, ',', '.'); // Formatação para exibição
-                        $total += $item['preco']; // Adiciona ao total
-                        echo "<li style='display: flex; justify-content: space-between; align-items: center;'>" . htmlspecialchars($item['quantidade']) . " - UN - " . htmlspecialchars($item['produto']) . " - R$ " . $preco_unitario_formatado . " (Total: R$ " . $preco_total_formatado . ")" .
-                            "<div class='botoes'>
+
+        <!-- Tabela para exibir os produtos -->
+
+        <table style="text-align: center; border-collapse: separate; border: 2px solid rgb(60, 106, 255);" class="table table-striped table-custom">
+            <thead>
+                <tr>
+                    <th style="text-align: center; color: white; background-color:rgb(60, 106, 255);">QTD.</th>
+                    <th style="text-align: center; color: white; background-color: rgb(60, 106, 255);">UN.</th>
+                    <th style="text-align: center; color: white; background-color: rgb(60, 106, 255);">PRODUTO</th>
+                    <th style="text-align: center; color: white; background-color: rgb(60, 106, 255);">V. UNITARIO</th>
+                    <th style="text-align: center; color: white; background-color: rgb(60, 106, 255);">V. TOTAL</th>
+                    <th style="text-align: center; color: white; background-color: rgb(60, 106, 255);">-</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <?php
+                if (empty($_SESSION['carrinho'])) {
+                    echo "<tr><td colspan='6' class='text-center'>Carrinho vazio</td></tr>";
+                } else {
+                    foreach ($_SESSION['carrinho'] as $index => $item) {
+                        if (is_array($item) && isset($item['produto']) && isset($item['quantidade']) && isset($item['preco'])) {
+                            $preco_unitario_formatado = number_format($item['preco'] / $item['quantidade'], 2, ',', '.'); // Calcula o preço unitário
+                            $preco_total_formatado = number_format($item['preco'], 2, ',', '.'); // Formatação para exibição
+                            $total += $item['preco']; // Adiciona ao total
+                            echo "<tr>
+                                    <td>" . htmlspecialchars($item['quantidade']) . "</td>
+                                    <td>UN</td>
+                                    <td>" . htmlspecialchars($item['produto']) . "</td>
+                                    <td>R$ " . $preco_unitario_formatado . "</td>
+                                    <td>R$ " . $preco_total_formatado . "</td>
+                                    <td class='botoes'>
                                         <button type='button' class='btn btn-primary' data-toggle='modal' data-target='#editModal' data-index='$index' data-nome='" . htmlspecialchars($item['produto']) . "' data-quantidade='" . $item['quantidade'] . "' data-preco='" . number_format($item['preco'] / $item['quantidade'], 2, '.', '') . "'>📝</button>
                                         <form method='post' style='display:inline;'>
                                             <input type='hidden' name='index' value='$index'>
-                                            <button class='btn btn-warning' name='acao' value='Excluir'>❌</button>
+                                            <button class='btn btn-danger' name='acao' value='Excluir' style='background-color: red; color:white; width:30px;'>X</button>
                                         </form>
-                                      </div>
-                                     </li>";
+                                    </td>
+                                  </tr>";
+                        }
                     }
                 }
-            }
-            ?>
-        </ul>
+                ?>
+            </tbody>
+        </table>
         <h3 class="tot">Total: R$ <?php echo number_format($total, 2, ',', '.'); ?></h3>
 
     </main>
@@ -196,7 +225,7 @@ $preco_formatado_para_exibir = number_format($preco_editar, 2, ',', '.'); // Par
                             <div style="display: flex; flex-direction:column">
                                 <div style="display:flex; justify-content: space-between;">
                                     <h2>Editar produto</h2>
-                                    <button style="display: flex; width:10%; height: 10%;" type="button" class="btn btn-secondary" data-dismiss="modal">X</button>
+                                    <button style="display: flex; width:9%; height: 10%;" type="button" class="btn btn-secondary" data-dismiss="modal">X</button>
                                 </div>
                                 <div>
                                     <div style="display:flex; flex-direction:row; width:100%;">
