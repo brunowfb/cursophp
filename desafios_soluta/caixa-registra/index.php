@@ -1,54 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caixa Registradora</title>
+    <title>Caixa registradora</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <?php 
-        $saque = $_REQUEST['saque'] ?? 0;
-    ?>
 
-    <main>
-        <h1>Caixa Registradora</h1>
-        <form action="<?=$_SERVER['PHP_SELF']?>" method="get">
-            <label for="saque">Qual valor você deseja sacar? (R$)
-             <sup>*</sup></label>
-             <input type="number" name="saque" id="saque"
-             step="5" required value="<?=$saque?>">
-             <p style="font-size: 0.6em;"><sup>*</sup>Notas disponíveis: R$100, R$50, R$10 e R$5</p> 
-             <input type="submit" value="Sacar">
+<body>
+    <main style="display: flex; flex-direction: column;">
+        <h1 style="color: black; font-size: 1.2em">Finalizar venda</h1>
+        <h2 style="font-size: 2.5em; color: black;">TOTAL A PAGAR:</h2>
+        <p style="font-weight: bolder; background-color: #b7b2d7; border-radius: 4px; padding: 5px">Informações do pagamento</p>
+        <form style="display:flex; max-width:800px; justify-content: space-between;" action="" method="get">
+            <div style="display:flex;  flex-direction: column;">
+                <div>
+                    <h1 style="font-size: 3.5em;">TROCO:</h1>
+                    <div id="troco"></div>
+
+                </div>
+            </div>
+            <div style="display:flex;  flex-direction: column;">
+                <div style="display: flex; justify-content: flex-end; flex-direction: column;">
+                    <label for="">Dinheiro</label>
+                    <input type="number" name="dinheiro" id="idinheiro">
+                    <label for="">Cartão de crédito</label>
+                    <input type="number" name="credito" id="icredito">
+                    <label for="">Cartão de débito</label>
+                    <input type="number" name="debito" id="idebito">
+                    <label for="">Cheque</label>
+                    <input type="number" name="cheque" id="icheque">
+                </div>
+            </div>
         </form>
     </main>
-    <?php 
-    $resto = $saque;
-    //Saque de R$100
-    $tot100 = floor($resto / 100);
-    $resto %= 100;
-
-    //Saque de R$50
-    $tot50 = floor($resto / 50);
-    $resto %= 50;
-
-    //Saque de R$10
-    $tot10 = floor($resto / 10);
-    $resto %= 10;
-
-    //Saque de R$5
-    $tot5 = floor($resto / 5);
-    $resto %= 5;
+    <?php
+    $idinheiro = [[100, 5], [50, 5], [20, 5], [10, 5], [5, 5], [2, 5], [1, 5]]
     ?>
-    <section>
-        <h2>Saque de R$<?=number_format($saque, 2, ",", ".")?> realizado</h2>
-        <p>O caixa eketrônico vai te entregar as seguintes notas:</p>
-        <ul>
-            <li>R$100 x<?=$tot100?></li>
-            <li>R$50 x<?=$tot50?></li>
-            <li>R$10 x<?=$tot10?></li>
-            <li>R$5 x<?=$tot50?></li>
-        </ul>
-    </section>
 </body>
+
 </html>
