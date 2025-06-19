@@ -211,7 +211,7 @@ $total = 0; // Inicializa o total
             </tbody>
         </table>
         <h3 class="tot">Total: R$ <?php echo number_format($total, 2, ',', '.'); ?></h3>
-
+     
     </main>
 
     <!-- Modal para editar -->
