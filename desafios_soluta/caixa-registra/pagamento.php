@@ -2,7 +2,7 @@
 session_start();
 
 // Inicializa o total a pagar com o valor enviado do carrinho
-$totalPagar = isset($_GET['total']) ? (float)$_GET['total'] : 0; 
+$totalPagar = isset($_GET['total']) ? (float)$_GET['total'] : 0;
 $produtosCarrinho = isset($_SESSION['carrinho']) ? $_SESSION['carrinho'] : [];
 ?>
 
@@ -44,20 +44,54 @@ $produtosCarrinho = isset($_SESSION['carrinho']) ? $_SESSION['carrinho'] : [];
         .cedulas-moedas-table {
             margin-top: 20px;
         }
+
+        .valores-pagamento {
+            font-size: 1em;
+            /* Define a fonte maior para os valores de pagamento */
+        }
+
+        .preenchido {
+            background-color: #e7f3fe;
+            /* Cor de fundo para campos preenchidos */
+            border: 1px solid #2196F3;
+            /* Borda azul para indicar que o campo foi preenchido */
+        }
+
+        .icone-check {
+            display: none;
+            /* Inicialmente escondido */
+            color: green;
+            margin-left: 5px;
+        }
+
+        /* Estilo para o select */
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper .icone-check {
+            position: absolute;
+            right: 10px;
+            /* Ajuste conforme necessário */
+            top: 50%;
+            transform: translateY(-50%);
+            
+        }
     </style>
     <script>
         function formatarMoeda(valor) {
-            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).trim();
+            return valor.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).trim();
         }
 
         function calcularTotalRecebido() {
-            const dinheiro = parseFloat(document.getElementById('idinheiro').value.replace('R$ ', '').replace(',', '.') || 0);
-            const credito = parseFloat(document.getElementById('icredito').value.replace('R$ ', '').replace(',', '.') || 0);
-            const debito = parseFloat(document.getElementById('idebito').value.replace('R$ ', '').replace(',', '.') || 0);
-            const cheque = parseFloat(document.getElementById('icheque').value.replace('R$ ', '').replace(',', '.') || 0);
-            const pix = parseFloat(document.getElementById('ipix').value.replace('R$ ', '').replace(',', '.') || 0);
-
-            return isNaN(dinheiro) ? 0 : dinheiro + credito + debito + cheque + pix; 
+            const valores = ['idinheiro', 'icredito', 'idebito', 'icheque', 'ipix'];
+            return valores.reduce((total, id) => {
+                const valor = parseFloat(document.getElementById(id).value.replace('R$ ', '').replace(',', '.') || 0);
+                return total + (isNaN(valor) ? 0 : valor);
+            }, 0);
         }
 
         function calcularTroco() {
@@ -65,45 +99,64 @@ $produtosCarrinho = isset($_SESSION['carrinho']) ? $_SESSION['carrinho'] : [];
             const totalRecebido = calcularTotalRecebido();
             const troco = totalRecebido - totalPagar;
 
-            // Formata o troco para ter ponto como separador decimal
             document.getElementById('troco').innerText = formatarMoeda(troco).replace('.', ',');
-            return troco; 
+            return troco;
         }
 
         function formatarCampoMoeda(campo) {
             const valor = campo.value.replace('R$ ', '').replace(',', '.');
+
             if (valor) {
                 campo.value = `R$ ${parseFloat(valor).toFixed(2).replace('.', ',')}`;
+                const metodoPagamento = document.getElementById('metodoPagamento');
+                const selectedOptions = Array.from(metodoPagamento.selectedOptions);
+
+                // Adiciona o ícone de check ao lado da forma de pagamento selecionada
+                selectedOptions.forEach(option => {
+                    option.innerHTML = option.value + ' ✔️'; // Adiciona o ícone de check
+                });
             } else {
                 campo.value = '';
+                const metodoPagamento = document.getElementById('metodoPagamento');
+                const selectedOptions = Array.from(metodoPagamento.selectedOptions);
+
+                // Remove o ícone de check ao lado da forma de pagamento se o campo for limpo
+                selectedOptions.forEach(option => {
+                    option.innerHTML = option.value; // Remove o ícone de check
+                });
             }
             calcularTroco();
         }
 
         function mostrarFormaPagamento() {
-            const metodo = document.getElementById('metodoPagamento').value;
+            const metodo = document.getElementById('metodoPagamento');
             const formas = document.getElementsByClassName('pagamento');
 
             for (let i = 0; i < formas.length; i++) {
-                formas[i].style.display = 'none'; 
+                formas[i].style.display = 'none';
             }
 
-            if (metodo) {
-                document.getElementById(metodo).style.display = 'block'; 
+            for (let i = 0; i < metodo.options.length; i++) {
+                if (metodo.options[i].selected) {
+                    document.getElementById(metodo.options[i].value).style.display = 'block';
+                }
             }
-            calcularTroco(); 
+            calcularTroco();
         }
 
         function calcularCedulasTroco(troco) {
-            const cedulas = [200, 100, 50, 20, 10, 5, 2]; 
-            const moedas = [1, 0.5, 0.25, 0.1, 0.01]; 
+            const cedulas = [200, 100, 50, 20, 10, 5, 2];
+            const moedas = [1, 0.5, 0.25, 0.1, 0.01];
             let resultado = [];
 
             cedulas.forEach(cedula => {
                 if (troco >= cedula) {
                     const quantidade = Math.floor(troco / cedula);
                     troco -= quantidade * cedula;
-                    resultado.push({ denom: cedula, qtd: quantidade });
+                    resultado.push({
+                        denom: cedula,
+                        qtd: quantidade
+                    });
                 }
             });
 
@@ -111,17 +164,28 @@ $produtosCarrinho = isset($_SESSION['carrinho']) ? $_SESSION['carrinho'] : [];
                 if (troco >= moeda) {
                     const quantidade = Math.floor(troco / moeda);
                     troco -= quantidade * moeda;
-                    resultado.push({ denom: moeda, qtd: quantidade });
+                    resultado.push({
+                        denom: moeda,
+                        qtd: quantidade
+                    });
                 }
             });
 
-            return resultado; 
+            return resultado;
         }
 
         function concluirVenda() {
             const totalPagar = parseFloat(document.getElementById('totalPagar').value);
-            const totalRecebido = calcularTotalRecebido(); 
-            const metodoPagamento = document.getElementById('metodoPagamento').value;
+            const totalRecebido = calcularTotalRecebido();
+
+            if (totalRecebido < totalPagar) {
+                alert("O total recebido é menor que o valor total a pagar. Por favor, insira um valor válido.");
+                return;
+            }
+
+            const metodoPagamento = Array.from(document.getElementById('metodoPagamento').selectedOptions)
+                .map(option => option.value)
+                .join(', ');
 
             if (!metodoPagamento) {
                 alert("Por favor, selecione uma forma de pagamento.");
@@ -134,7 +198,12 @@ $produtosCarrinho = isset($_SESSION['carrinho']) ? $_SESSION['carrinho'] : [];
                 return;
             }
 
-            const troco = totalRecebido - totalPagar; 
+            const troco = totalRecebido - totalPagar;
+
+            if (troco < 0) {
+                alert("O troco é negativo. Por favor, insira um valor que cubra o total a pagar.");
+                return;
+            }
 
             const produtos = JSON.parse(document.getElementById('produtosCarrinho').value);
             let produtosResumo = `
@@ -169,7 +238,25 @@ $produtosCarrinho = isset($_SESSION['carrinho']) ? $_SESSION['carrinho'] : [];
                 <h1>Compra concluída</h1>
                 <h2>Histórico da Compra</h2>
                 <p><strong>Total a Pagar(-):</strong> R$ ${totalPagar.toFixed(2).replace('.', ',')}</p>
-                <p><strong>Total Pago(+):</strong> R$ ${totalRecebido.toFixed(2).replace('.', ',')} (${metodoPagamento})</p>
+                <p><strong>Total Pago(+):</strong> R$ ${totalRecebido.toFixed(2).replace('.', ',')}</p>
+                <h3>Métodos de Pagamento:</h3>
+            `;
+
+            const valoresPagamento = [];
+            const ids = ['idinheiro', 'icredito', 'idebito', 'icheque', 'ipix'];
+
+            ids.forEach(id => {
+                const valor = parseFloat(document.getElementById(id).value.replace('R$ ', '').replace(',', '.') || 0);
+                if (valor > 0) {
+                    valoresPagamento.push(`${id.replace('i', '')}: R$ ${valor.toFixed(2).replace('.', ',')}`);
+                }
+            });
+
+            if (valoresPagamento.length > 0) {
+                historico += `<div class="valores-pagamento">${valoresPagamento.join('<br>')}</div>`;
+            }
+
+            historico += `
                 <p><strong>Troco(+):</strong> R$ ${troco.toFixed(2).replace('.', ',')}</p>
                 <h2>Cédulas/moedas usadas no troco:</h2>
                 <table class="cedulas-moedas-table">
@@ -211,13 +298,13 @@ $produtosCarrinho = isset($_SESSION['carrinho']) ? $_SESSION['carrinho'] : [];
 
 <body>
     <main style="display: flex; flex-direction: column; align-items: center;">
-        
+
         <form id="formulario" style="display:flex; flex-direction: column; max-width: 800px; justify-content: center;">
             <p style="font-weight: bolder; background-color:rgb(255, 255, 255); border-radius: 4px; padding: 5px">Informações do pagamento</p>
 
             <h2 style="font-size: 2.5em; color: black;">TOTAL A PAGAR:</h2>
 
-            <input type='hidden' id='totalPagar' value='<?php echo $totalPagar; ?>'> 
+            <input type='hidden' id='totalPagar' value='<?php echo $totalPagar; ?>'>
             <h2 style='color: black;'>R$ <?php echo number_format($totalPagar, 2, ',', ''); ?></h2>
 
             <input type='hidden' id='produtosCarrinho' value='<?php echo json_encode($produtosCarrinho); ?>'>
@@ -228,14 +315,16 @@ $produtosCarrinho = isset($_SESSION['carrinho']) ? $_SESSION['carrinho'] : [];
             </div>
 
             <label for="metodoPagamento">Escolha a forma de pagamento:</label>
-            <select id="metodoPagamento" onchange="mostrarFormaPagamento()">
-                <option value="">Selecione</option>
-                <option value="dinheiro">Dinheiro</option>
-                <option value="credito">Cartão de Crédito</option>
-                <option value="debito">Cartão de Débito</option>
-                <option value="cheque">Cheque</option>
-                <option value="pix">PIX</option>
-            </select>
+            <div class="select-wrapper">
+                <select id="metodoPagamento" multiple onchange="mostrarFormaPagamento()">
+                    <option value="dinheiro">Dinheiro</option>
+                    <option value="pix">PIX</option>
+                    <option value="credito">Cartão de Crédito</option>
+                    <option value="debito">Cartão de Débito</option>
+                    <option value="cheque">Cheque</option> 
+                </select>
+                <span class="icone-check" id="iconeCheck" style="display: none; color:red">✔️</span> <!-- Ícone de check -->
+            </div>
 
             <div id="dinheiro" class="pagamento">
                 <label for="idinheiro">Valor em Dinheiro</label>

@@ -166,11 +166,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && empty($_SESSION['carrinho'])) {
                                         <td>R$ " . $preco_total_formatado . "</td>
                                         <td style='display:flex; flex-direction: row; gap: 10px;'>
                                             <button type='button' class='btn btn-primary' data-toggle='modal' data-target='#editModal' data-index='$index' data-nome='" . htmlspecialchars($item['produto']) . "' data-quantidade='" . $item['quantidade'] . "' data-preco='" . number_format($item['preco'] / $item['quantidade'], 2, ',', '') . "'>📝</button>
-                                            <form method='post' style= 'padding: 0px;
-                                            'margin: 0px;
-                                            'display:inline;'>
+                                            <form method='post' style='padding: 0px; margin: 0px; display:inline;'>
                                                 <input type='hidden' name='index' value='$index'>
-                                                <button class='btn btn-danger' name='acao' value='Excluir' style='background-color: red; color:white; width:50px;'>🗑️</button>
+                                                <button class='btn btn-danger' name='acao' value='Excluir' style='background-color: red; color:white; width:50px;'>🗑</button>
                                             </form>
                                         </td>
                                       </tr>";
